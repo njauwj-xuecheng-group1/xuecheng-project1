@@ -2,7 +2,14 @@ package com.xuecheng.base.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.List;
 
 /**
  * @author Mr.M
@@ -41,5 +48,18 @@ public class GlobalExceptionHandler {
         return new RestErrorResponse(CommonError.UNKOWN_ERROR.getErrMessage());
     }
 
+    //捕获jsr303校验框架抛出的异常
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public RestErrorResponse validationException(MethodArgumentNotValidException e) {
+        //记录异常
+        log.error("系统异常{}", e.getMessage(), e);
+        BindingResult bindingResult = e.getBindingResult();
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
+        StringBuilder msg = new StringBuilder();
+        fieldErrors.forEach(error -> msg.append(error.getDefaultMessage()).append(","));
+        //解析出异常信息
+        return new RestErrorResponse(msg.deleteCharAt(msg.length() - 1).toString());
+    }
 
 }
