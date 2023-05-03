@@ -17,5 +17,6 @@ public interface CourseCategoryMapper extends BaseMapper<CourseCategory> {
 
     List<CourseCategoryTreeDto> getCourseCategoryTree(String id);
 
+    String getCourseCategoryNameById(String id);
 
 }

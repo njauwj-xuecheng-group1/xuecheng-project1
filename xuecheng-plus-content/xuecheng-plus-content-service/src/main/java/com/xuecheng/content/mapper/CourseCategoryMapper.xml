@@ -27,5 +27,10 @@
         order by id, orderby
 
     </select>
+    <select id="getCourseCategoryNameById" resultType="java.lang.String">
+        select name
+        from course_category
+        where id = #{id}
+    </select>
 
 </mapper>
