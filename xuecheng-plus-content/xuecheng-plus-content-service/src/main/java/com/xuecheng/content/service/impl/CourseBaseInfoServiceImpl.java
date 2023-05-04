@@ -1,20 +1,19 @@
 package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xuecheng.base.exception.CommonError;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
-import com.xuecheng.content.mapper.CourseBaseMapper;
-import com.xuecheng.content.mapper.CourseCategoryMapper;
-import com.xuecheng.content.mapper.CourseMarketMapper;
+import com.xuecheng.content.mapper.*;
 import com.xuecheng.content.model.dto.AddCourseDto;
 import com.xuecheng.content.model.dto.CourseBaseInfoDto;
 import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.dto.UpdateCourseDto;
-import com.xuecheng.content.model.po.CourseBase;
-import com.xuecheng.content.model.po.CourseMarket;
+import com.xuecheng.content.model.po.*;
 import com.xuecheng.content.service.CourseBaseInfoService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +42,15 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
 
     @Resource
     private CourseCategoryMapper courseCategoryMapper;
+
+    @Resource
+    private CourseTeacherMapper courseTeacherMapper;
+
+    @Resource
+    private TeachplanMapper teachplanMapper;
+
+    @Resource
+    private TeachplanMediaMapper teachplanMediaMapper;
 
     /**
      * 分页条件查询课程列表
@@ -167,7 +175,7 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         if (base == null) {
             XueChengPlusException.cast(CommonError.QUERY_NULL);
         }
-        if (companyId == null || companyId.equals(base.getCompanyId())) {
+        if (companyId == null || !companyId.equals(base.getCompanyId())) {
             XueChengPlusException.cast(CommonError.PARAMS_ERROR);
         }
         CourseBase courseBase = new CourseBase();
@@ -184,6 +192,38 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         saveCourseMarket(courseMarket);
         return getCourseBaseInfo(courseBase.getId());
     }
+
+    /**
+     * 删除课程
+     *
+     * @param courseId
+     */
+    @Override
+    @Transactional
+    public void deleteCourse(Long courseId) {
+        CourseBase courseBase = courseBaseMapper.selectById(courseId);
+        if (courseBase == null) {
+            //已发布课程不能删除
+            XueChengPlusException.cast("课程不存在");
+        }
+        if (courseBase.getStatus().equals("203002")) {
+            //已发布课程不能删除
+            XueChengPlusException.cast("课程已发布不能删除");
+        }
+        courseBaseMapper.deleteById(courseId);
+        courseMarketMapper.deleteById(courseId);
+        deleteCourseRelation(courseId, CourseTeacher.class, courseTeacherMapper);
+        deleteCourseRelation(courseId, Teachplan.class, teachplanMapper);
+        deleteCourseRelation(courseId, TeachplanMedia.class, teachplanMediaMapper);
+    }
+
+    //删除课程相关的信息
+    public <T> void deleteCourseRelation(Long courseId, Class<T> clazz, BaseMapper<T> baseMapper) {
+        QueryWrapper<T> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("course_id", courseId);
+        baseMapper.delete(queryWrapper);
+    }
+
 
     //查询课程信息
     public CourseBaseInfoDto getCourseBaseInfo(long courseId) {
