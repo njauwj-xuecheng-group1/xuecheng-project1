@@ -224,7 +224,6 @@ public class CourseBaseInfoServiceImpl implements CourseBaseInfoService {
         baseMapper.delete(queryWrapper);
     }
 
-
     //查询课程信息
     public CourseBaseInfoDto getCourseBaseInfo(long courseId) {
 

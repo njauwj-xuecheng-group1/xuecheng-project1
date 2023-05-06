@@ -19,14 +19,14 @@ import java.util.List;
  */
 @Slf4j
 @RestController
-public class DictionaryController  {
+public class DictionaryController {
 
     @Autowired
-    private DictionaryService  dictionaryService;
+    private DictionaryService dictionaryService;
 
     @GetMapping("/dictionary/all")
     public List<Dictionary> queryAll() {
-        return dictionaryService.queryAll();
+        return dictionaryService.list();
     }
 
     @GetMapping("/dictionary/code/{code}")
