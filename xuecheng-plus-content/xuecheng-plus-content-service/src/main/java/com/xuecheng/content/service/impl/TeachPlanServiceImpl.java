@@ -102,10 +102,14 @@ public class TeachPlanServiceImpl implements TeachPlanService {
         Teachplan teachplan = teachplanMapper.selectById(id);
         LambdaQueryWrapper<Teachplan> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Teachplan::getCourseId, teachplan.getCourseId());
-        queryWrapper.orderByDesc(Teachplan::getOrderby);
-        //orderby 越小越靠前
-        queryWrapper.lt(move.equals("moveup"), Teachplan::getOrderby, teachplan.getOrderby());
-        queryWrapper.gt(move.equals("movedown"), Teachplan::getOrderby, teachplan.getOrderby());
+        if (move.equals("moveup")) {
+            //orderby 越小越靠前
+            queryWrapper.lt(Teachplan::getOrderby, teachplan.getOrderby());
+            queryWrapper.orderByDesc(Teachplan::getOrderby);
+        } else {
+            queryWrapper.gt(Teachplan::getOrderby, teachplan.getOrderby());
+            queryWrapper.orderByAsc(Teachplan::getOrderby);
+        }
         queryWrapper.last("limit 1");
         if (teachplan.getGrade() == 1) {
             //大章节移动
