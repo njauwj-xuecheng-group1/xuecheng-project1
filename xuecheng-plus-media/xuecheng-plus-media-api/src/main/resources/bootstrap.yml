@@ -26,7 +26,7 @@ spring:
             refresh: true
   profiles:
     active: dev
-  servlet:
-    multipart:
-      max-file-size: 50MB #单个文件的大小限制
-      max-request-size: 50MB #单次请求的大小限制
+#  servlet:
+#    multipart:
+#      max-file-size: 50MB #单个文件的大小限制
+#      max-request-size: 50MB #单次请求的大小限制
