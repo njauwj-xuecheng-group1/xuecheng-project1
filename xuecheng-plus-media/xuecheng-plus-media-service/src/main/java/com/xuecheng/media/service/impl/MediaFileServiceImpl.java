@@ -9,10 +9,12 @@ import com.xuecheng.base.model.PageParams;
 import com.xuecheng.base.model.PageResult;
 import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.media.mapper.MediaFilesMapper;
+import com.xuecheng.media.mapper.MediaProcessMapper;
 import com.xuecheng.media.model.dto.QueryMediaParamsDto;
 import com.xuecheng.media.model.dto.UploadFileParamsDto;
 import com.xuecheng.media.model.dto.UploadFileResultDto;
 import com.xuecheng.media.model.po.MediaFiles;
+import com.xuecheng.media.model.po.MediaProcess;
 import com.xuecheng.media.service.MediaFileService;
 import io.minio.*;
 import io.minio.messages.DeleteError;
@@ -55,6 +57,9 @@ public class MediaFileServiceImpl implements MediaFileService {
     @Autowired
     MediaFileService currentProxy;
 
+    @Resource
+    private MediaProcessMapper mediaProcessMapper;
+
     //存储普通文件
     @Value("${minio.bucket.files}")
     private String bucket_mediafiles;
@@ -84,7 +89,7 @@ public class MediaFileServiceImpl implements MediaFileService {
     }
 
     //根据扩展名获取mimeType
-    private String getMimeType(String extension) {
+    public String getMimeType(String extension) {
         if (extension == null) {
             extension = "";
         }
@@ -220,12 +225,32 @@ public class MediaFileServiceImpl implements MediaFileService {
                 log.debug("向数据库保存文件失败,bucket:{},objectName:{}", bucket, objectName);
                 return null;
             }
+            addWatingTask(mediaFiles);
             return mediaFiles;
 
         }
         return mediaFiles;
 
     }
+
+    //添加待处理任务
+    private void addWatingTask(MediaFiles mediaFiles) {
+        String filename = mediaFiles.getFilename();
+        String extenion = filename.substring(filename.lastIndexOf("."));
+        String mimeType = getMimeType(extenion);
+        if (mimeType.equals("video/x-msvideo")) {
+            MediaProcess mediaProcess = new MediaProcess();
+            BeanUtils.copyProperties(mediaFiles, mediaProcess);
+            mediaProcess.setUrl(null);
+            mediaProcess.setStatus("1");
+            mediaProcess.setCreateDate(LocalDateTime.now());
+            int insert = mediaProcessMapper.insert(mediaProcess);
+            if (insert <= 0) {
+                log.debug("添加待处理任务失败,fileId:{},fileName:{}", mediaProcess.getFileId(), mediaProcess.getFilename());
+            }
+        }
+    }
+
 
     @Override
     public RestResponse<Boolean> checkFile(String fileMd5) {
@@ -418,7 +443,7 @@ public class MediaFileServiceImpl implements MediaFileService {
      * @param fileExt 文件扩展名
      * @return
      */
-    private String getFilePathByMd5(String fileMd5, String fileExt) {
+    public String getFilePathByMd5(String fileMd5, String fileExt) {
         return fileMd5.substring(0, 1) + "/" + fileMd5.substring(1, 2) + "/" + fileMd5 + "/" + fileMd5 + fileExt;
     }
 

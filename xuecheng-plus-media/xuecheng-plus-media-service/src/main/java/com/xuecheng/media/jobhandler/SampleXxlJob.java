@@ -33,7 +33,7 @@ public class SampleXxlJob {
     /**
      * 1、简单任务示例（Bean模式）
      */
-    @XxlJob("videoJobHandler")
+    @XxlJob("testJobHandler")
     public void demoJobHandler() throws Exception {
         System.out.println("视频处理");
     }
