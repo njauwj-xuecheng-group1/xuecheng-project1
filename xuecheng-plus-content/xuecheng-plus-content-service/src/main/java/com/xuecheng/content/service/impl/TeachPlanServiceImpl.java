@@ -2,6 +2,7 @@ package com.xuecheng.content.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
 import com.xuecheng.content.model.dto.AssociationMediaDto;
@@ -161,5 +162,25 @@ public class TeachPlanServiceImpl implements TeachPlanService {
         teachplanMedia.setMediaFilename(fileName);
         teachplanMedia.setCreateDate(LocalDateTime.now());
         teachplanMediaMapper.insert(teachplanMedia);
+    }
+
+    /**
+     * 解绑媒资
+     *
+     * @param teachPlanId
+     * @param mediaId
+     * @return
+     */
+    @Override
+    public RestResponse unbindingMedia(Long teachPlanId, String mediaId) {
+
+        LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TeachplanMedia::getMediaId, mediaId);
+        queryWrapper.eq(TeachplanMedia::getTeachplanId, teachPlanId);
+        int delete = teachplanMediaMapper.delete(queryWrapper);
+        if (delete <= 0) {
+            return RestResponse.validfail("解绑媒资失败");
+        }
+        return RestResponse.success("解绑媒资成功");
     }
 }

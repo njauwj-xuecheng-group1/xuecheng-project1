@@ -1,5 +1,6 @@
 package com.xuecheng.content.api;
 
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.model.dto.AssociationMediaDto;
 import com.xuecheng.content.model.dto.TeachPlanTreeDto;
 import com.xuecheng.content.model.po.Teachplan;
@@ -45,10 +46,16 @@ public class TeachPlanController {
         teachPlanService.moveUpOrDown(move, id);
     }
 
-    @ApiOperation(value = "小节添加视频")
+    @ApiOperation(value = "绑定媒资")
     @PostMapping("/teachplan/association/media")
     public void associationMedia(@RequestBody AssociationMediaDto associationMediaDto) {
         teachPlanService.associationMedia(associationMediaDto);
+    }
+
+    @ApiOperation(value = "解绑媒资")
+    @DeleteMapping("/teachplan/association/media/{teachPlanId}/{mediaId}")
+    public RestResponse unbindingMedia(@PathVariable Long teachPlanId, @PathVariable String mediaId) {
+        return teachPlanService.unbindingMedia(teachPlanId, mediaId);
     }
 
 }

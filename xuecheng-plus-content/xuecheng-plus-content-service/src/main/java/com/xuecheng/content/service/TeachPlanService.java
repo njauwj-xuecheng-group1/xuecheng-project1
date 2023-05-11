@@ -1,5 +1,6 @@
 package com.xuecheng.content.service;
 
+import com.xuecheng.base.model.RestResponse;
 import com.xuecheng.content.model.dto.AssociationMediaDto;
 import com.xuecheng.content.model.dto.TeachPlanTreeDto;
 import com.xuecheng.content.model.po.Teachplan;
@@ -21,4 +22,7 @@ public interface TeachPlanService {
     void moveUpOrDown(String move, Long id);
 
     void associationMedia(AssociationMediaDto associationMediaDto);
+
+    RestResponse unbindingMedia(Long teachPlanId, String mediaId);
+
 }
