@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.base.exception.XueChengPlusException;
 import com.xuecheng.content.mapper.TeachplanMapper;
 import com.xuecheng.content.mapper.TeachplanMediaMapper;
+import com.xuecheng.content.model.dto.AssociationMediaDto;
 import com.xuecheng.content.model.dto.TeachPlanTreeDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.model.po.TeachplanMedia;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -132,5 +134,32 @@ public class TeachPlanServiceImpl implements TeachPlanService {
         exchangeObj.setOrderby(orderby1);
         teachplanMapper.updateById(teachplan);
         teachplanMapper.updateById(exchangeObj);
+    }
+
+    /**
+     * 绑定媒资
+     *
+     * @param associationMediaDto
+     */
+    @Override
+    public void associationMedia(AssociationMediaDto associationMediaDto) {
+        String fileName = associationMediaDto.getFileName();
+        String mediaId = associationMediaDto.getMediaId();
+        Long teachplanId = associationMediaDto.getTeachplanId();
+        Teachplan teachplan = teachplanMapper.selectById(teachplanId);
+        if (teachplan == null) {
+            XueChengPlusException.cast("绑定的课程不存在");
+        }
+        if (teachplan.getGrade() != 2) {
+            XueChengPlusException.cast("只有小节才能绑定视频");
+        }
+        Long courseId = teachplan.getCourseId();
+        TeachplanMedia teachplanMedia = new TeachplanMedia();
+        teachplanMedia.setMediaId(mediaId);
+        teachplanMedia.setTeachplanId(teachplanId);
+        teachplanMedia.setCourseId(courseId);
+        teachplanMedia.setMediaFilename(fileName);
+        teachplanMedia.setCreateDate(LocalDateTime.now());
+        teachplanMediaMapper.insert(teachplanMedia);
     }
 }

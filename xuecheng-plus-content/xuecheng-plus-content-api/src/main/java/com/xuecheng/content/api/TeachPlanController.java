@@ -1,5 +1,6 @@
 package com.xuecheng.content.api;
 
+import com.xuecheng.content.model.dto.AssociationMediaDto;
 import com.xuecheng.content.model.dto.TeachPlanTreeDto;
 import com.xuecheng.content.model.po.Teachplan;
 import com.xuecheng.content.service.TeachPlanService;
@@ -42,6 +43,12 @@ public class TeachPlanController {
     @PostMapping("/teachplan/{move}/{id}")
     public void move(@PathVariable String move, @PathVariable Long id) {
         teachPlanService.moveUpOrDown(move, id);
+    }
+
+    @ApiOperation(value = "小节添加视频")
+    @PostMapping("/teachplan/association/media")
+    public void associationMedia(@RequestBody AssociationMediaDto associationMediaDto) {
+        teachPlanService.associationMedia(associationMediaDto);
     }
 
 }
