@@ -53,9 +53,13 @@ public class TeachPlanServiceImpl implements TeachPlanService {
             if (teachplan.getGrade() == 1) {
                 //新增章节
                 orderBy = teachplanMapper.getMaxOrderBy(teachplan.getCourseId(), 0L);
+
             } else {
                 //新增小节
                 orderBy = teachplanMapper.getMaxOrderBy(teachplan.getCourseId(), teachplan.getParentid());
+            }
+            if (orderBy == null) {
+                orderBy = 0;
             }
             teachplan.setOrderby(orderBy + 1);
             teachplanMapper.insert(teachplan);
