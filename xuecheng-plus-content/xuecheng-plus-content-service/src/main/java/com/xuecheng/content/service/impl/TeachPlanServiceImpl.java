@@ -154,6 +154,11 @@ public class TeachPlanServiceImpl implements TeachPlanService {
         if (teachplan.getGrade() != 2) {
             XueChengPlusException.cast("只有小节才能绑定视频");
         }
+        //一个小节只能绑定一个媒资,所以先删除媒资在进行绑定
+        LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(TeachplanMedia::getMediaId, mediaId);
+        queryWrapper.eq(TeachplanMedia::getTeachplanId, teachplanId);
+        teachplanMediaMapper.delete(queryWrapper);
         Long courseId = teachplan.getCourseId();
         TeachplanMedia teachplanMedia = new TeachplanMedia();
         teachplanMedia.setMediaId(mediaId);
@@ -177,10 +182,7 @@ public class TeachPlanServiceImpl implements TeachPlanService {
         LambdaQueryWrapper<TeachplanMedia> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TeachplanMedia::getMediaId, mediaId);
         queryWrapper.eq(TeachplanMedia::getTeachplanId, teachPlanId);
-        int delete = teachplanMediaMapper.delete(queryWrapper);
-        if (delete <= 0) {
-            return RestResponse.validfail("解绑媒资失败");
-        }
+        teachplanMediaMapper.delete(queryWrapper);
         return RestResponse.success("解绑媒资成功");
     }
 }
