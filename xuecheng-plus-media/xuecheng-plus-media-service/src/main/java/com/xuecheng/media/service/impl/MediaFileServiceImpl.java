@@ -22,6 +22,7 @@ import io.minio.messages.DeleteObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -445,6 +446,25 @@ public class MediaFileServiceImpl implements MediaFileService {
      */
     public String getFilePathByMd5(String fileMd5, String fileExt) {
         return fileMd5.substring(0, 1) + "/" + fileMd5.substring(1, 2) + "/" + fileMd5 + "/" + fileMd5 + fileExt;
+    }
+
+    /**
+     * 获取媒资播放地址url
+     *
+     * @param mediaId
+     * @return
+     */
+    @Override
+    public RestResponse<String> getPlayUrlByMediaId(String mediaId) {
+        MediaFiles mediaFiles = mediaFilesMapper.selectById(mediaId);
+        if (mediaFiles == null) {
+            return RestResponse.validfail("不存在视频");
+        }
+        String url = mediaFiles.getUrl();
+        if (StringUtils.isBlank(url)) {
+            return RestResponse.validfail("视频还在处理中");
+        }
+        return RestResponse.success(url);
     }
 
     //得到分块文件的目录

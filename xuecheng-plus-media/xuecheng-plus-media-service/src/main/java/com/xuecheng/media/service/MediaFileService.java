@@ -56,4 +56,6 @@ public interface MediaFileService {
     String getMimeType(String extension);
 
     String getFilePathByMd5(String fileMd5, String fileExt);
+
+    RestResponse<String> getPlayUrlByMediaId(String mediaId);
 }
