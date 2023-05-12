@@ -11,4 +11,6 @@ import com.xuecheng.content.model.dto.CoursePreviewDto;
 public interface CoursePublishService {
 
     CoursePreviewDto preview(Long courseId);
+
+    void courseAudit(Long companyId, Long courseId);
 }
