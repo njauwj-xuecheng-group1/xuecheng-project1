@@ -13,4 +13,6 @@ public interface CoursePublishService {
     CoursePreviewDto preview(Long courseId);
 
     void courseAudit(Long companyId, Long courseId);
+
+    void publish(Long companyId, Long courseId);
 }

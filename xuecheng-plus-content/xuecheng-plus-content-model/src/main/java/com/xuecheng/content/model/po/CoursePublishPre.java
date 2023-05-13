@@ -123,7 +123,7 @@ public class CoursePublishPre implements Serializable {
     private LocalDateTime auditDate;
 
     /**
-     * 状态
+     * 课程审核状态
      */
     private String status;
 
