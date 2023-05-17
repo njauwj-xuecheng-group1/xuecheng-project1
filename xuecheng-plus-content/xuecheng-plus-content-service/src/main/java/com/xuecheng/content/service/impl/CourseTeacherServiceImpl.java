@@ -44,8 +44,8 @@ public class CourseTeacherServiceImpl implements CourseTeacherService {
         LambdaQueryWrapper<CourseTeacher> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(CourseTeacher::getCourseId, courseTeacher.getCourseId());
         queryWrapper.eq(CourseTeacher::getTeacherName, courseTeacher.getTeacherName());
-        Integer count = courseTeacherMapper.selectCount(queryWrapper);
         if (courseTeacher.getId() == null) {
+            Integer count = courseTeacherMapper.selectCount(queryWrapper);
             //新增老师
             if (count > 0) {
                 XueChengPlusException.cast("已存在教师");
@@ -53,7 +53,9 @@ public class CourseTeacherServiceImpl implements CourseTeacherService {
             courseTeacherMapper.insert(courseTeacher);
         } else {
             //更新老师信息
-            if (count > 1) {
+            queryWrapper.ne(CourseTeacher::getId, courseTeacher.getId());
+            Integer count = courseTeacherMapper.selectCount(queryWrapper);
+            if (count > 0) {
                 XueChengPlusException.cast("已存在教师");
             }
             courseTeacherMapper.updateById(courseTeacher);
