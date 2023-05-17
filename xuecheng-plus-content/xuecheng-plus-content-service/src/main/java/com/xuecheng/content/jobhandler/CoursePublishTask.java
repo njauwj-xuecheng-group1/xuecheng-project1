@@ -1,6 +1,10 @@
 package com.xuecheng.content.jobhandler;
 
-import com.xuecheng.content.feignclient.MediaServiceClient;
+import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.feignclient.CourseIndex;
+import com.xuecheng.content.feignclient.SearchServiceClient;
+import com.xuecheng.content.mapper.CoursePublishMapper;
+import com.xuecheng.content.model.po.CoursePublish;
 import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
@@ -8,6 +12,7 @@ import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +33,10 @@ public class CoursePublishTask extends MessageProcessAbstract {
     CoursePublishService coursePublishService;
 
     @Resource
-    private MediaServiceClient mediaServiceClient;
+    private SearchServiceClient searchServiceClient;
 
+    @Resource
+    private CoursePublishMapper coursePublishMapper;
 
     @XxlJob("CoursePublishJobHandler")
     public void shardingJobHandler() throws Exception {
@@ -54,16 +61,41 @@ public class CoursePublishTask extends MessageProcessAbstract {
         return true;
     }
 
+    /**
+     * 课程信息保存至redis todo
+     *
+     * @param mqMessage
+     * @param courseId
+     */
     private void saveCourseCache(MqMessage mqMessage, Long courseId) {
         MqMessageService mqMessageService = getMqMessageService();
         mqMessageService.completedStageTwo(mqMessage.getId());
         log.debug("将课程信息缓存至redis,课程id:{}", courseId);
     }
 
+    /**
+     * 添加课程文档
+     *
+     * @param mqMessage
+     * @param courseId
+     */
     private void saveCourseIndex(MqMessage mqMessage, Long courseId) {
+        Long id = mqMessage.getId();
         MqMessageService mqMessageService = getMqMessageService();
-        mqMessageService.completedStageThree(mqMessage.getId());
-        log.debug("保存课程索引信息,课程id:{}", courseId);
+        int stageThree = mqMessageService.getStageThree(id);
+        if (stageThree > 0) {
+            log.debug("{}课程文档已保存至索引库", courseId);
+            return;
+        }
+        CourseIndex courseIndex = new CourseIndex();
+        CoursePublish coursePublish = coursePublishMapper.selectById(courseId);
+        BeanUtils.copyProperties(coursePublish, courseIndex);
+        Boolean add = searchServiceClient.add(courseIndex);
+        if (Boolean.FALSE.equals(add)) {
+            log.error("添加课程至索引发生熔断，课程为{}", courseId);
+            XueChengPlusException.cast("添加课程至索引发生熔断");
+        }
+        mqMessageService.completedStageThree(id);
     }
 
     /**

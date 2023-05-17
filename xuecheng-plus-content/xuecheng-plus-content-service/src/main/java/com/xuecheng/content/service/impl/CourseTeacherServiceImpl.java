@@ -34,7 +34,7 @@ public class CourseTeacherServiceImpl implements CourseTeacherService {
     }
 
     /**
-     * 添加教师
+     * 添加或更新教师
      *
      * @param courseTeacher
      * @return
@@ -42,17 +42,20 @@ public class CourseTeacherServiceImpl implements CourseTeacherService {
     @Override
     public CourseTeacher addCourseTeacher(CourseTeacher courseTeacher) {
         LambdaQueryWrapper<CourseTeacher> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(CourseTeacher::getCourseId, courseTeacher.getCourseId());
         queryWrapper.eq(CourseTeacher::getTeacherName, courseTeacher.getTeacherName());
-        queryWrapper.ne(courseTeacher.getId() != null, CourseTeacher::getId, courseTeacher.getId());
         Integer count = courseTeacherMapper.selectCount(queryWrapper);
-        if (count > 0) {
-            XueChengPlusException.cast("教师已存在");
-        }
         if (courseTeacher.getId() == null) {
-            //新增
+            //新增老师
+            if (count > 0) {
+                XueChengPlusException.cast("已存在教师");
+            }
             courseTeacherMapper.insert(courseTeacher);
         } else {
-            //更新
+            //更新老师信息
+            if (count > 1) {
+                XueChengPlusException.cast("已存在教师");
+            }
             courseTeacherMapper.updateById(courseTeacher);
         }
         return courseTeacherMapper.selectById(courseTeacher.getId());
