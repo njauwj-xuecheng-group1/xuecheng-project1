@@ -1,13 +1,19 @@
 package com.xuecheng.content.jobhandler;
 
+import com.xuecheng.content.feignclient.MediaServiceClient;
+import com.xuecheng.content.service.CoursePublishService;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MessageProcessAbstract;
 import com.xuecheng.messagesdk.service.MqMessageService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.io.File;
 
 /**
  * @author: wj
@@ -17,6 +23,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Component
 public class CoursePublishTask extends MessageProcessAbstract {
+
+    @Autowired
+    CoursePublishService coursePublishService;
+
+    @Resource
+    private MediaServiceClient mediaServiceClient;
 
 
     @XxlJob("CoursePublishJobHandler")
@@ -43,15 +55,20 @@ public class CoursePublishTask extends MessageProcessAbstract {
     }
 
     private void saveCourseCache(MqMessage mqMessage, Long courseId) {
+        MqMessageService mqMessageService = getMqMessageService();
+        mqMessageService.completedStageTwo(mqMessage.getId());
         log.debug("将课程信息缓存至redis,课程id:{}", courseId);
     }
 
     private void saveCourseIndex(MqMessage mqMessage, Long courseId) {
+        MqMessageService mqMessageService = getMqMessageService();
+        mqMessageService.completedStageThree(mqMessage.getId());
         log.debug("保存课程索引信息,课程id:{}", courseId);
     }
 
     /**
      * 页面静态化
+     *
      * @param mqMessage
      * @param courseId
      */
@@ -63,7 +80,8 @@ public class CoursePublishTask extends MessageProcessAbstract {
             log.debug("{}课程静态页面已生成", courseId);
             return;
         }
-        int i = 1 / 0;
+        File file = coursePublishService.generateStaticHtml(courseId);
+        coursePublishService.uploadHtmlToMinio(file, courseId);
         mqMessageService.completedStageOne(id);
     }
 

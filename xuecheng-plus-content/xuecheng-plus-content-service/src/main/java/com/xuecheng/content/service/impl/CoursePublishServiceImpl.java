@@ -3,6 +3,8 @@ package com.xuecheng.content.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.xuecheng.base.exception.CommonError;
 import com.xuecheng.base.exception.XueChengPlusException;
+import com.xuecheng.content.config.MultipartSupportConfig;
+import com.xuecheng.content.feignclient.MediaServiceClient;
 import com.xuecheng.content.mapper.CourseBaseMapper;
 import com.xuecheng.content.mapper.CoursePublishMapper;
 import com.xuecheng.content.mapper.CoursePublishPreMapper;
@@ -13,13 +15,23 @@ import com.xuecheng.content.model.po.*;
 import com.xuecheng.content.service.*;
 import com.xuecheng.messagesdk.model.po.MqMessage;
 import com.xuecheng.messagesdk.service.MqMessageService;
+import freemarker.template.Configuration;
+import freemarker.template.Template;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -28,6 +40,7 @@ import java.util.List;
  * @explain:
  */
 @Service
+@Slf4j
 public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Resource
@@ -53,6 +66,9 @@ public class CoursePublishServiceImpl implements CoursePublishService {
 
     @Resource
     private MqMessageService mqMessageService;
+
+    @Resource
+    private MediaServiceClient mediaServiceClient;
 
 
     @Override
@@ -153,6 +169,66 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         saveCoursePublishMessage(courseId);
         // 删除预发布表的数据
         coursePublishPreMapper.deleteById(courseId);
+    }
+
+    /**
+     * 生成课程静态页面
+     *
+     * @param courseId
+     * @return
+     */
+    @Override
+    public File generateStaticHtml(Long courseId) {
+
+        File tempFile = null;
+        try {
+            Configuration configuration = new Configuration(Configuration.getVersion());
+            //拿到classpath路径
+            String classpath = this.getClass().getResource("/").getPath();
+            //指定模板的目录
+            configuration.setDirectoryForTemplateLoading(new File(classpath + "/templates/"));
+            //指定编码
+            configuration.setDefaultEncoding("utf-8");
+            //得到模板
+            Template template = configuration.getTemplate("course_template.ftl");
+            //准备数据
+            CoursePreviewDto coursePreviewInfo = preview(courseId);
+            HashMap<String, Object> map = new HashMap<>();
+            map.put("model", coursePreviewInfo);
+            //Template template 模板, Object model 数据
+            String html = FreeMarkerTemplateUtils.processTemplateIntoString(template, map);
+            //输入流
+            InputStream inputStream = IOUtils.toInputStream(html, "utf-8");
+            //输出文件
+            tempFile = File.createTempFile("coursePublish", ".html");
+            FileOutputStream outputStream = new FileOutputStream(tempFile);
+            //使用流将html写入文件
+            IOUtils.copy(inputStream, outputStream);
+        } catch (Exception e) {
+            log.error("生成课程静态页面出错，课程id为{}", courseId);
+            XueChengPlusException.cast("生成课程静态页面出错");
+        }
+        return tempFile;
+
+    }
+
+    /**
+     * 上传静态页面到Minio
+     */
+    @Override
+    public void uploadHtmlToMinio(File file, Long courseId) {
+        //将file转成MultipartFile
+        MultipartFile multipartFile = MultipartSupportConfig.getMultipartFile(file);
+        try {
+            //远程调用得到返回值
+            String upload = mediaServiceClient.upload(multipartFile, "course/" + courseId + ".html");
+            if (upload == null) {
+                log.debug("走了降级逻辑");
+            }
+        } catch (Exception e) {
+            log.error("上传静态页面至Minio出错，课程id为{}", courseId);
+            XueChengPlusException.cast("上传静态页面至Minio出错");
+        }
     }
 
 
