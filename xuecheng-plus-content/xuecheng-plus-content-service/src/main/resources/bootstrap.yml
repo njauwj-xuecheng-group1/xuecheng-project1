@@ -23,5 +23,3 @@ spring:
 
   profiles:
     active: dev #环境名
-server:
-  port: 1234
