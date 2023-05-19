@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DaoAuthenticationProviderCustom extends DaoAuthenticationProvider {
 
+    @Override
     @Autowired
     public void setUserDetailsService(UserDetailsService userDetailsService) {
         super.setUserDetailsService(userDetailsService);
@@ -23,9 +24,10 @@ public class DaoAuthenticationProviderCustom extends DaoAuthenticationProvider {
 
 
     //屏蔽密码对比
+    @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-
-
+        //自己实现密码比对
+        return;
     }
 
 

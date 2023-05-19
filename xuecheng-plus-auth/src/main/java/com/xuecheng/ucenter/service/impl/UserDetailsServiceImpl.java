@@ -1,10 +1,9 @@
 package com.xuecheng.ucenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
-import com.xuecheng.ucenter.model.po.XcUser;
+import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.service.AuthService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.User;
@@ -40,21 +39,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
         AuthParamsDto authParamsDto = JSON.parseObject(s, AuthParamsDto.class);
         String authType = authParamsDto.getAuthType();
+        //策略模式
         String authServiceName = authType + "AuthService";
         AuthService authService = applicationContext.getBean(authServiceName, AuthService.class);
         //进行登入认证
-        authService.execute(authParamsDto);
-        String username = authParamsDto.getUsername();
-        //查询用户是否存在
-        LambdaQueryWrapper<XcUser> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(XcUser::getUsername, username);
-        XcUser xcUser = xcUserMapper.selectOne(queryWrapper);
-        if (xcUser == null) {
-            return null;
-        }
-        String password = xcUser.getPassword();
-        xcUser.setPassword(null);
-        String userJson = JSON.toJSONString(xcUser);
+        XcUserExt xcUserExt = authService.execute(authParamsDto);
+        return getUserDetails(xcUserExt);
+    }
+
+    private UserDetails getUserDetails(XcUserExt xcUserExt) {
+        String password = xcUserExt.getPassword();
+        xcUserExt.setPassword(null);
+        String userJson = JSON.toJSONString(xcUserExt);
         return User.withUsername(userJson).password(password).authorities("test").build();
     }
 }
