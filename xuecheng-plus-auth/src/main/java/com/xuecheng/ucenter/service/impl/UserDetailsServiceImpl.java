@@ -3,7 +3,10 @@ package com.xuecheng.ucenter.service.impl;
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.xuecheng.ucenter.mapper.XcUserMapper;
+import com.xuecheng.ucenter.model.dto.AuthParamsDto;
 import com.xuecheng.ucenter.model.po.XcUser;
+import com.xuecheng.ucenter.service.AuthService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,15 +26,25 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     @Resource
     private XcUserMapper xcUserMapper;
 
+    @Resource
+    private ApplicationContext applicationContext;
+
     /**
      * 核对用户身份颁发令牌
      *
-     * @param username
+     * @param s :用户认证请求参数
      * @return
      * @throws UsernameNotFoundException
      */
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
+        AuthParamsDto authParamsDto = JSON.parseObject(s, AuthParamsDto.class);
+        String authType = authParamsDto.getAuthType();
+        String authServiceName = authType + "AuthService";
+        AuthService authService = applicationContext.getBean(authServiceName, AuthService.class);
+        //进行登入认证
+        authService.execute(authParamsDto);
+        String username = authParamsDto.getUsername();
         //查询用户是否存在
         LambdaQueryWrapper<XcUser> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(XcUser::getUsername, username);

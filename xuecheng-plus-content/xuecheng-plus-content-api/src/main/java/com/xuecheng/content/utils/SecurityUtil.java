@@ -21,6 +21,7 @@ public class SecurityUtil {
 
     public static XcUser getUser() {
         try {
+            //拿到令牌中的用户信息
             Object principalObj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             if (principalObj instanceof String) {
                 //取出用户身份信息
