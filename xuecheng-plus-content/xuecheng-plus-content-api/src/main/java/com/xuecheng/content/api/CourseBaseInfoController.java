@@ -11,6 +11,7 @@ import com.xuecheng.content.model.dto.QueryCourseParamsDto;
 import com.xuecheng.content.model.dto.UpdateCourseDto;
 import com.xuecheng.content.model.po.CourseBase;
 import com.xuecheng.content.service.CourseBaseInfoService;
+import com.xuecheng.content.utils.SecurityUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.validation.annotation.Validated;
@@ -51,6 +52,7 @@ public class CourseBaseInfoController {
         if (id <= 0) {
             XueChengPlusException.cast(CommonError.PARAMS_ERROR);
         }
+        SecurityUtil.XcUser user = SecurityUtil.getUser();
         return courseBaseInfoService.getCourseById(id);
     }
 
