@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 /**
  * <p>
- * 
+ *
  * </p>
  *
  * @author itcast
@@ -21,6 +21,7 @@ public class XcUser implements Serializable {
 
     private String id;
 
+    //账号
     private String username;
 
     private String password;
@@ -28,14 +29,18 @@ public class XcUser implements Serializable {
     private String salt;
 
     private String name;
+    //昵称
     private String nickname;
+
     private String wxUnionid;
+
     private String companyId;
     /**
      * 头像
      */
     private String userpic;
 
+    //用户类型
     private String utype;
 
     private LocalDateTime birthday;

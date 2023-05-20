@@ -1,7 +1,6 @@
 package com.xuecheng.ucenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.xuecheng.ucenter.mapper.XcUserMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
 import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.service.AuthService;
@@ -22,8 +21,6 @@ import javax.annotation.Resource;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-    @Resource
-    private XcUserMapper xcUserMapper;
 
     @Resource
     private ApplicationContext applicationContext;

@@ -27,7 +27,7 @@ public class DaoAuthenticationProviderCustom extends DaoAuthenticationProvider {
     @Override
     protected void additionalAuthenticationChecks(UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
         //自己实现密码比对
-        return;
+
     }
 
 
