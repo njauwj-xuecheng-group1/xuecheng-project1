@@ -29,20 +29,20 @@ public class PicCheckCodeServiceImpl extends AbstractCheckCodeService implements
     @Autowired
     private DefaultKaptcha kaptcha;
 
-    @Resource(name="NumberLetterCheckCodeGenerator")
+    @Resource(name = "NumberLetterCheckCodeGenerator")
     @Override
     public void setCheckCodeGenerator(CheckCodeGenerator checkCodeGenerator) {
         this.checkCodeGenerator = checkCodeGenerator;
     }
 
-    @Resource(name="UUIDKeyGenerator")
+    @Resource(name = "UUIDKeyGenerator")
     @Override
     public void setKeyGenerator(KeyGenerator keyGenerator) {
         this.keyGenerator = keyGenerator;
     }
 
 
-    @Resource(name="RedisCheckCodeStore")
+    @Resource(name = "RedisCheckCodeStore")
     @Override
     public void setCheckCodeStore(CheckCodeStore checkCodeStore) {
         this.checkCodeStore = checkCodeStore;

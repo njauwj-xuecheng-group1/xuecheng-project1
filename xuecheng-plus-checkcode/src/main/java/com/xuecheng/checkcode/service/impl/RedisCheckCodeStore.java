@@ -17,17 +17,17 @@ import java.util.concurrent.TimeUnit;
 public class RedisCheckCodeStore implements CheckCodeService.CheckCodeStore {
 
     @Autowired
-    RedisTemplate redisTemplate;
+    RedisTemplate<String, String> redisTemplate;
 
 
     @Override
     public void set(String key, String value, Integer expire) {
-        redisTemplate.opsForValue().set(key,value,expire, TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, value, expire, TimeUnit.SECONDS);
     }
 
     @Override
     public String get(String key) {
-        return (String) redisTemplate.opsForValue().get(key);
+        return redisTemplate.opsForValue().get(key);
     }
 
     @Override
