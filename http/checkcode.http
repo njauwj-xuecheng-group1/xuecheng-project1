@@ -1,0 +1,9 @@
+
+
+###核对验证码
+POST {{check_code_host}}/checkcode/verify?key=checkcode:a8ff2631042d4d378e86e5aa035ddda4&code=81XL
+
+
+###生成验证码
+POST {{check_code_host}}/checkcode/pic
+
