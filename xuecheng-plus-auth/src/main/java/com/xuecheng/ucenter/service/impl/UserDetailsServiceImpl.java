@@ -1,6 +1,7 @@
 package com.xuecheng.ucenter.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.xuecheng.ucenter.mapper.XcMenuMapper;
 import com.xuecheng.ucenter.model.dto.AuthParamsDto;
 import com.xuecheng.ucenter.model.dto.XcUserExt;
 import com.xuecheng.ucenter.service.AuthService;
@@ -12,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author: wj
@@ -24,6 +26,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Resource
     private ApplicationContext applicationContext;
+
+    @Resource
+    private XcMenuMapper xcMenuMapper;
 
     /**
      * 核对用户身份颁发令牌
@@ -48,6 +53,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         String password = xcUserExt.getPassword();
         xcUserExt.setPassword(null);
         String userJson = JSON.toJSONString(xcUserExt);
-        return User.withUsername(userJson).password(password).authorities("test").build();
+        //查询用户权限
+        List<String> authorities = xcMenuMapper.selectPermissionByUserId(xcUserExt.getId());
+        xcUserExt.setPermissions(authorities);
+        //new String[0] 是指定数组的初始大小为 0。这个参数的作用是告诉 Java 编译器，我们需要一个 String 类型的数组，但是具体的大小还不确定，因此可以将数组的长度设为 0。
+        // Java 编译器会根据 List 的大小动态分配数组的大小，并将 List 中的元素复制到数组中。
+        String[] strings = authorities.toArray(new String[0]);
+        return User.withUsername(userJson).password(password).authorities(strings).build();
     }
 }
