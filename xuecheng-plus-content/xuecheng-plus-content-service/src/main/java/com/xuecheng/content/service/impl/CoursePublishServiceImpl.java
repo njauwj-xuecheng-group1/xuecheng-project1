@@ -231,6 +231,17 @@ public class CoursePublishServiceImpl implements CoursePublishService {
         }
     }
 
+    /**
+     * 查询已发布课程
+     *
+     * @param courseId
+     * @return
+     */
+    @Override
+    public CoursePublish getCoursepublish(Long courseId) {
+        return coursePublishMapper.selectById(courseId);
+    }
+
 
     private void saveCoursePublishMessage(Long courseId) {
         MqMessage mqMessage = mqMessageService.addMessage("course_publish", String.valueOf(courseId), null, null);
